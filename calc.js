@@ -9,9 +9,38 @@ window.onload = function() {
   resultsCtr.value = "";
 
   document.querySelectorAll('.inputs').forEach(btn => btn.addEventListener('click', appendInput));
+  document.addEventListener('keypress', validateKey);
   document.getElementById("btn-eq").addEventListener('click', processInput);
   document.getElementById("btn-clr").addEventListener('click', clearInput);
   document.getElementById("btn-del").addEventListener('click', delInputChar);
+}
+
+
+/**
+ * Function: validateKey
+ * Summary:  Listener function to handle operator & operand 
+ *           keyboard inputs and redirect them to the 
+ *           appropriate function.
+ * Used by:  Document keypress event listener.
+ * Inputs:   Event e.
+ * Returns:  None.
+ * TODO:     Add listening for clear/del.
+*/
+function validateKey(e)
+{
+  let keyVal = document.querySelector(`button[data-key="${e.keyCode}"]`);
+  if (!keyVal)
+    return;
+  
+  keyVal = keyVal.textContent;
+
+  if (keyVal == "=")
+  {
+    e.preventDefault();
+    processInput();
+  }
+  else
+    appendInput(e, keyVal);
 }
 
 
@@ -22,13 +51,13 @@ window.onload = function() {
  *           will make an invalid expression, adds the contents 
  *           of the button that was clicked to the current running 
  *           expression, and updates the input container contents.
- * Used by:  All ".inputs" button listeners.
+ * Used by:  All ".inputs" button listeners, and validateKey().
  * Inputs:   Event e.
  * Returns:  None.  Modifies input container contents.
 */
-function appendInput(e)
+function appendInput(e, keyVal)
 {
-  let char = e.target.textContent;
+  let char = keyVal == undefined ? e.target.textContent : keyVal;
 
   // Don't allow >1 operators or decimals in a row, replace
   if ((isOperator(char) && isOperator(inputCtr.value.substr(-1))) ||
@@ -51,13 +80,13 @@ function appendInput(e)
         foundOperator = isOperator(inputCtr.value.charAt(i));
       }
       if (foundOperator)
-        inputCtr.value += e.target.textContent;
+        inputCtr.value += char;
     }
     else
-      inputCtr.value += e.target.textContent;
+      inputCtr.value += char;
   }
   else
-    inputCtr.value += e.target.textContent;
+    inputCtr.value += char;
 }
 
 
@@ -85,7 +114,7 @@ function processInput(e)
     let arr = exp.split(/(\+|\-)/);
 
     // Create & reduce sub-arrays of highest priority operations
-    multDivLoop: for (i = 0; i < arr.length; i++)
+    for (i = 0; i < arr.length; i++)
     {
       if (arr[i].includes('*') || arr[i].includes('/'))
       {
